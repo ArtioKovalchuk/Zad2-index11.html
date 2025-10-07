@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Klikacz na 5</title>
+<style>
+  body { text-align:center; font-family: Arial; }
+  #click-box { width:300px; height:200px; background:rgb(102, 34, 34); margin:10px auto; cursor:pointer; }
+  table { width:60%; margin:10px auto; border-collapse: collapse; }
+  th, td { border:1px solid #681f1f; padding:5px; }
+  .hint { cursor: help; color:rgb(184, 184, 252); }
+</style>
+</head>
+<body>
+<h2>Klikacz</h2>
+<div id="click-box"></div>
+<div>Time: <span id="timer">0</span></div>
+<div>Kliknięcia: <span id="counter">0</span></div>
+<button id="start">Start</button>
+<button id="reset">Reset</button>
+
+<div>
+<input type="text" id="nickname" placeholder="Twój nick">
+<button id="save">Zapisz wynik</button>
+</div>
+
+<h3>Ranking</h3>
+<table>
+<thead><tr><th>#</th><th>Nick</th><th>Wynik</th><th>?</th></tr></thead>
+<tbody id="ranking"></tbody>
+</table>
+
+<script>
+let time=10, clicks=0, timerId=null, ranking=[];
+
+const box=document.getElementById('click-box');
+const counter=document.getElementById('counter');
+const timer=document.getElementById('timer');
+const startBtn=document.getElementById('start');
+const resetBtn=document.getElementById('reset');
+const saveBtn=document.getElementById('save');
+const nickInput=document.getElementById('nickname');
+const rankingBody=document.getElementById('ranking');
+
+function start(){
+  time=10; clicks=0;
+  counter.textContent=clicks;
+  timer.textContent=time;
+  if(timerId) return;
+  timerId=setInterval(()=>{
+    time--; timer.textContent=time;
+    if(time<=0) stop();
+  },1000);
+  startBtn.disabled=true;
+}
+
+function stop(){ clearInterval(timerId); timerId=null; startBtn.disabled=false; }
+function reset(){ stop(); clicks=0; time=0; counter.textContent=clicks; timer.textContent=time; }
+
+box.addEventListener('click', ()=>{ if(time>0){ clicks++; counter.textContent=clicks; } });
+startBtn.addEventListener('click', start);
+resetBtn.addEventListener('click', reset);
+
+saveBtn.addEventListener('click', ()=>{
+  const nick=nickInput.value.trim();
+  if(!nick){ alert('Podaj nick!'); return; }
+  const entry={
+    nick: nick,
+    score: clicks,
+    additional: {
+      autoClicks: Math.floor(Math.random()*3),
+      hasAutoClicker: Math.random()<0.5
+    }
+  };
+  ranking.push(entry);
+  ranking.sort((a,b)=>b.score - a.score);
+  renderRanking();
+});
+
+function renderRanking(){
+  rankingBody.innerHTML='';
+  ranking.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const hint=`AutoKlikacze: ${r.additional.autoClicks}, AutoClicker: ${r.additional.hasAutoClicker?'Tak':'Nie'}`;
+    tr.innerHTML=`<td>${i+1}</td><td>${r.nick}</td><td>${r.score}</td><td class="hint" title="${hint}">?</td>`;
+    rankingBody.appendChild(tr);
+  });
+}
+</script>
+</body>
+</html>
